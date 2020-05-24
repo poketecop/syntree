@@ -25,174 +25,173 @@ function Node() {
 	this.head_chain = null;
 	this.tail_chain = null;
 	this.starred = null;
-}
-
-Node.prototype.set_siblings = function(parent) {
-	for (var i = 0; i < this.children.length; i++)
-		this.children[i].set_siblings(this);
-	
-	this.has_children = (this.children.length > 0);
-	this.parent = parent;
-	
-	if (this.has_children) {
-		this.first = this.children[0];
-		this.last = this.children[this.children.length - 1];
-	}
-	
-	for (var i = 0; i < this.children.length - 1; i++)
-		this.children[i].next = this.children[i+1];
-	
-	for (var i = 1; i < this.children.length; i++)
-		this.children[i].previous = this.children[i-1];
-}
-
-Node.prototype.check_triangle = function() {
-	this.draw_triangle = 0;
-	if ((!this.has_children) && (this.parent.starred))
-		this.draw_triangle = 1;
-
-	for (var child = this.first; child != null; child = child.next)
-		child.check_triangle();
-}
-
-Node.prototype.set_width = function(ctx, vert_space, hor_space, term_font, nonterm_font) {
-	ctx.font = term_font;
-	if (this.has_children)
-		ctx.font = nonterm_font;
-
-	var val_width = ctx.measureText(this.value).width;
-
-	for (var child = this.first; child != null; child = child.next)
-		child.set_width(ctx, vert_space, hor_space, term_font, nonterm_font);
-	
-	if (!this.has_children) {
-		this.left_width = val_width / 2;
-		this.right_width = val_width / 2;
-		return;
-	}
-	
-	// Figure out how wide apart the children should be placed.
-	// The spacing between them should be equal.
-	this.step = 0;
-	for (var child = this.first; (child != null) && (child.next != null); child = child.next) {
-		var space = child.right_width + hor_space + child.next.left_width;
-		this.step = Math.max(this.step, space);
-	}
-	
-	this.left_width = 0.0;
-	this.right_width = 0.0;
-	
-	if (this.has_children) {
-		var sub = ((this.children.length - 1) / 2) * this.step;
-		this.left_width = sub + this.first.left_width;
-		this.right_width = sub + this.last.right_width;
-	}
-	
-	this.left_width = Math.max(this.left_width, val_width / 2);
-	this.right_width = Math.max(this.right_width, val_width / 2);
-
-}
-
-Node.prototype.find_height = function() {
-	this.max_y = this.y;
-	for (var child = this.first; child != null; child = child.next)
-		this.max_y = Math.max(this.max_y, child.find_height());
-	return this.max_y;
-}
-
-Node.prototype.assign_location = function(x, y, font_size, term_lines) {
-	// floor + 0.5 for antialiasing
-	this.x = Math.floor(x) + 0.5;
-	this.y = Math.floor(y) + 0.5;
-	
-	if (this.has_children) {
-		var left_start = x - (this.step)*((this.children.length-1)/2);
+	this.set_siblings = function(parent) {
 		for (var i = 0; i < this.children.length; i++)
-			this.children[i].assign_location(left_start + i*(this.step), y + vert_space, font_size, term_lines);
-	} else {
-		if ((this.parent) && (!term_lines) && (this.parent.children.length == 1) && (!this.draw_triangle))
-			this.y = this.parent.y + padding_above_text + padding_below_text + font_size;
-	}
-}
-
-Node.prototype.draw = function(ctx, font_size, term_font, nonterm_font, color, term_lines) {
-	ctx.font = term_font;
-	if (this.has_children)
-		ctx.font = nonterm_font;
+			this.children[i].set_siblings(this);
 		
-	ctx.fillStyle = "black";
-	if (color) {
-		ctx.fillStyle = "green";
+		this.has_children = (this.children.length > 0);
+		this.parent = parent;
+		
+		if (this.has_children) {
+			this.first = this.children[0];
+			this.last = this.children[this.children.length - 1];
+		}
+		
+		for (var i = 0; i < this.children.length - 1; i++)
+			this.children[i].next = this.children[i+1];
+		
+		for (var i = 1; i < this.children.length; i++)
+			this.children[i].previous = this.children[i-1];
+	};
+
+	this.check_triangle = function() {
+		this.draw_triangle = 0;
+		if ((!this.has_children) && (this.parent.starred))
+			this.draw_triangle = 1;
+
+		for (var child = this.first; child != null; child = child.next)
+			child.check_triangle();
+	};
+
+	this.set_width = function(ctx, vert_space, hor_space, term_font, nonterm_font) {
+		ctx.font = term_font;
 		if (this.has_children)
-			ctx.fillStyle = "blue";
-	}
-	
-	ctx.fillText(this.value, this.x, this.y);
-	for (var child = this.first; child != null; child = child.next)
-		child.draw(ctx, font_size, term_font, nonterm_font, color, term_lines);
-	
-	if (!this.parent) return;
-	
-	if (this.draw_triangle) {
+			ctx.font = nonterm_font;
+
+		var val_width = ctx.measureText(this.value).width;
+
+		for (var child = this.first; child != null; child = child.next)
+			child.set_width(ctx, vert_space, hor_space, term_font, nonterm_font);
+		
+		if (!this.has_children) {
+			this.left_width = val_width / 2;
+			this.right_width = val_width / 2;
+			return;
+		}
+		
+		// Figure out how wide apart the children should be placed.
+		// The spacing between them should be equal.
+		this.step = 0;
+		for (var child = this.first; (child != null) && (child.next != null); child = child.next) {
+			var space = child.right_width + hor_space + child.next.left_width;
+			this.step = Math.max(this.step, space);
+		}
+		
+		this.left_width = 0.0;
+		this.right_width = 0.0;
+		
+		if (this.has_children) {
+			var sub = ((this.children.length - 1) / 2) * this.step;
+			this.left_width = sub + this.first.left_width;
+			this.right_width = sub + this.last.right_width;
+		}
+		
+		this.left_width = Math.max(this.left_width, val_width / 2);
+		this.right_width = Math.max(this.right_width, val_width / 2);
+
+	};
+
+	this.find_height = function() {
+		this.max_y = this.y;
+		for (var child = this.first; child != null; child = child.next)
+			this.max_y = Math.max(this.max_y, child.find_height());
+		return this.max_y;
+	};
+
+	this.assign_location = function(x, y, font_size, term_lines) {
+		// floor + 0.5 for antialiasing
+		this.x = Math.floor(x) + 0.5;
+		this.y = Math.floor(y) + 0.5;
+		
+		if (this.has_children) {
+			var left_start = x - (this.step)*((this.children.length-1)/2);
+			for (var i = 0; i < this.children.length; i++)
+				this.children[i].assign_location(left_start + i*(this.step), y + vert_space, font_size, term_lines);
+		} else {
+			if ((this.parent) && (!term_lines) && (this.parent.children.length == 1) && (!this.draw_triangle))
+				this.y = this.parent.y + padding_above_text + padding_below_text + font_size;
+		}
+	};
+
+	this.draw = function(ctx, font_size, term_font, nonterm_font, color, term_lines) {
+		ctx.font = term_font;
+		if (this.has_children)
+			ctx.font = nonterm_font;
+			
+		ctx.fillStyle = "black";
+		if (color) {
+			ctx.fillStyle = "green";
+			if (this.has_children)
+				ctx.fillStyle = "blue";
+		}
+		
+		ctx.fillText(this.value, this.x, this.y);
+		for (var child = this.first; child != null; child = child.next)
+			child.draw(ctx, font_size, term_font, nonterm_font, color, term_lines);
+		
+		if (!this.parent) return;
+		
+		if (this.draw_triangle) {
+			ctx.moveTo(this.parent.x, this.parent.y + padding_below_text);
+			ctx.lineTo(this.x - this.left_width, this.y - font_size - padding_above_text);
+			ctx.lineTo(this.x + this.right_width, this.y - font_size - padding_above_text);
+			ctx.lineTo(this.parent.x, this.parent.y + padding_below_text);
+			ctx.stroke();
+			return;
+		}
+		
+		if ((!this.has_children) && (!term_lines) && (this.parent.children.length == 1)) return;
+		
 		ctx.moveTo(this.parent.x, this.parent.y + padding_below_text);
-		ctx.lineTo(this.x - this.left_width, this.y - font_size - padding_above_text);
-		ctx.lineTo(this.x + this.right_width, this.y - font_size - padding_above_text);
-		ctx.lineTo(this.parent.x, this.parent.y + padding_below_text);
+		ctx.lineTo(this.x, this.y - font_size - padding_above_text);
 		ctx.stroke();
-		return;
-	}
-	
-	if ((!this.has_children) && (!term_lines) && (this.parent.children.length == 1)) return;
-	
-	ctx.moveTo(this.parent.x, this.parent.y + padding_below_text);
-	ctx.lineTo(this.x, this.y - font_size - padding_above_text);
-	ctx.stroke();
-}
+	};
 
-Node.prototype.find_head = function(label) {
-	for (var child = this.first; child != null; child = child.next) {
-		var res = child.find_head(label);
-		if (res != null) return res;
-	}
-	
-	if (this.label == label) return this;
-	return null;
-}
+	this.find_head = function(label) {
+		for (var child = this.first; child != null; child = child.next) {
+			var res = child.find_head(label);
+			if (res != null) return res;
+		}
+		
+		if (this.label == label) return this;
+		return null;
+	};
 
-Node.prototype.find_movement = function(mlarr, root) {
-	for (var child = this.first; child != null; child = child.next)
-		child.find_movement(mlarr, root);
-	
-	if (this.tail != null) {
-		var m = new MovementLine;
-		m.tail = this;
-		m.head = root.find_head(this.tail);
-		mlarr.push(m);
-	}
-}
+	this.find_movement = function(mlarr, root) {
+		for (var child = this.first; child != null; child = child.next)
+			child.find_movement(mlarr, root);
+		
+		if (this.tail != null) {
+			var m = new MovementLine;
+			m.tail = this;
+			m.head = root.find_head(this.tail);
+			mlarr.push(m);
+		}
+	};
 
-Node.prototype.reset_chains = function() {
-	this.head_chain = null;
-	this.tail_chain = null;
-	
-	for (var child = this.first; child != null; child = child.next)
-		child.reset_chains();
-}
+	this.reset_chains = function() {
+		this.head_chain = null;
+		this.tail_chain = null;
+		
+		for (var child = this.first; child != null; child = child.next)
+			child.reset_chains();
+	};
 
-Node.prototype.find_intervening_height = function(leftwards) {
-	var max_y = this.y;
-	
-	var n = this;
-	while (true) {
-		if (leftwards) {n = n.previous;} else {n = n.next;}
-		if (!n) break;
-		if ((n.head_chain) || (n.tail_chain)) return max_y;
-		max_y = Math.max(max_y, n.max_y);
-	}
-	
-	max_y = Math.max(max_y, 
-		this.parent.find_intervening_height(leftwards));
-	return max_y;
+	this.find_intervening_height = function(leftwards) {
+		var max_y = this.y;
+		
+		var n = this;
+		while (true) {
+			if (leftwards) {n = n.previous;} else {n = n.next;}
+			if (!n) break;
+			if ((n.head_chain) || (n.tail_chain)) return max_y;
+			max_y = Math.max(max_y, n.max_y);
+		}
+		
+		max_y = Math.max(max_y, 
+			this.parent.find_intervening_height(leftwards));
+		return max_y;
+	};
 }
 
 function MovementLine() {
@@ -307,6 +306,16 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	}
 	
 	var root = parse(str);
+	var simplifiedRoot = simplifyRoot(root);
+	
+	
+	
+	// Swap out the image
+	var img = [obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines), obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines)];
+	return img;
+}
+
+function obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {
 	root.set_siblings(null);
 	root.check_triangle();
 	
@@ -357,7 +366,6 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	for (var i = 0; i < movement_lines.length; i++)
 		if (movement_lines[i].should_draw) movement_lines[i].draw(ctx);
 	
-	// Swap out the image
 	return Canvas2Image.saveAsPNG(canvas, true);
 }
 
@@ -433,4 +441,26 @@ function parse(str) {
 		}
 	}
 	return n;
+}
+
+function simplifyRoot(root) {
+	var child;
+	var simplifiedRoot;
+	simplifiedRoot = new Node();
+	var simplifiedChildren = [];
+	for (i = 0; i < root.children.length; i++) {
+		child = root.children[i];
+		if (child.children && child.children.length > 0) {
+			simplifiedChildren.push(simplifyRoot(child));
+		} else {
+//			simplifiedRoot = new Node();
+			simplifiedRoot = Object.assign({}, child);
+		}
+	}
+	
+//	if (simplifiedRoot) {
+		simplifiedRoot.children = simplifiedChildren;
+//	}
+	
+	return simplifiedRoot;
 }
