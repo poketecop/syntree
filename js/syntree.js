@@ -28,8 +28,11 @@ function Node() {
 }
 
 Node.prototype.set_siblings = function(parent) {
-	for (var i = 0; i < this.children.length; i++)
-		this.children[i].set_siblings(this);
+	for (var i = 0; i < this.children.length; i++) {
+		if (this.children[i]) {
+			this.children[i].set_siblings(this);
+		}
+	}
 	
 	this.has_children = (this.children.length > 0);
 	this.parent = parent;
@@ -39,11 +42,17 @@ Node.prototype.set_siblings = function(parent) {
 		this.last = this.children[this.children.length - 1];
 	}
 	
-	for (var i = 0; i < this.children.length - 1; i++)
-		this.children[i].next = this.children[i+1];
+	for (var i = 0; i < this.children.length - 1; i++) {
+		if (this.children[i]) {
+			this.children[i].next = this.children[i+1];
+		}
+	}
 	
-	for (var i = 1; i < this.children.length; i++)
-		this.children[i].previous = this.children[i-1];
+	for (var i = 1; i < this.children.length; i++) {
+		if (this.children[i]) {
+			this.children[i].previous = this.children[i-1];
+		}
+	}
 }
 
 Node.prototype.check_triangle = function() {
@@ -107,8 +116,11 @@ Node.prototype.assign_location = function(x, y, font_size, term_lines) {
 	
 	if (this.has_children) {
 		var left_start = x - (this.step)*((this.children.length-1)/2);
-		for (var i = 0; i < this.children.length; i++)
-			this.children[i].assign_location(left_start + i*(this.step), y + vert_space, font_size, term_lines);
+		for (var i = 0; i < this.children.length; i++) {
+			if (this.children[i]) {
+				this.children[i].assign_location(left_start + i*(this.step), y + vert_space, font_size, term_lines);
+			}
+		}
 	} else {
 		if ((this.parent) && (!term_lines) && (this.parent.children.length == 1) && (!this.draw_triangle))
 			this.y = this.parent.y + padding_above_text + padding_below_text + font_size;
@@ -312,7 +324,9 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	
 	
 	// Swap out the image
-	var img = [obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines), obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines)];
+	var img = [];
+	img[0] = obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
+	img[1] = obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
 	return img;
 }
 
@@ -444,9 +458,7 @@ function parse(str) {
 	return n;
 }
 
-var recursiveIndex = 0;
 function simplifyRoot(root) {
-	recursiveIndex++;
 	
 	var simplifiedRoot;
 	if (root.children && root.children.length > 0) {
@@ -459,20 +471,19 @@ function simplifyRoot(root) {
 			if (child.children && child.children.length > 0) {
 				simplifiedChild = simplifyRoot(child);
 				simplifiedChildren.push(simplifiedChild);
-			} else {
+			} else if (child.value != "(" && child.value != ")") {
 				simplifiedRoot = JSON.parse(JSON.stringify(child));
-				simplifiedRoot = Object.setPrototypeOf(simplifiedRoot, child);
+				simplifiedRoot = Object.setPrototypeOf(simplifiedRoot, new Node());
 			}
 		}
 		if (simplifiedRoot) {
 			simplifiedRoot.children = simplifiedChildren;
 		} else {
-			simplifiedRoot = JSON.parse(JSON.stringify(simplifiedChildren[0]));
-			simplifiedRoot = Object.setPrototypeOf(simplifiedRoot, simplifiedChildren[0]);
+			simplifiedRoot = simplifiedChildren[0];
 		}
 	} else {
 		simplifiedRoot = JSON.parse(JSON.stringify(root));
-		simplifiedRoot = Object.setPrototypeOf(simplifiedRoot, root);
+		simplifiedRoot = Object.setPrototypeOf(simplifiedRoot, new Node());
 	}
 	
 	return simplifiedRoot;
