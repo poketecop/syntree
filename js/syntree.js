@@ -302,13 +302,30 @@ MovementLine.prototype.draw = function(ctx) {
 }
 
 function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {	
-	console.log("go");
+	var derivedFromLeft = "";
+	str = cleanString(str);
+	
+	var root = parse(str);
+	var simplifiedRoot = simplifyRoot(root);
+	
+	// Swap out the image
+	var img = [];
+	img[0] = obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
+	img[1] = obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
+	
+	return img;
+}
+
+function cleanString(str) {
 	// Clean up the string
 	str = str.replace(/^\s+/, "");
 	var open = 0;
 	for (var i = 0; i < str.length; i++) {
-		if (str[i] == "[") open++;
-		if (str[i] == "]") open--;
+		if (str[i] == "[") {
+			open++;
+		} else if (str[i] == "]") {
+			open--;
+		}
 	}
 	while (open < 0) {
 		str = "[" + str;
@@ -320,16 +337,7 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	}
 	$("#i").val(str);
 	
-	var root = parse(str);
-	var simplifiedRoot = simplifyRoot(root);
-	
-	
-	
-	// Swap out the image
-	var img = [];
-	img[0] = obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
-	img[1] = obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
-	return img;
+	return str;
 }
 
 function obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {
