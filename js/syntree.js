@@ -25,6 +25,7 @@ function Node() {
 	this.head_chain = null;
 	this.tail_chain = null;
 	this.starred = null;
+	this.derived = false;
 }
 
 Node.prototype.set_siblings = function(parent) {
@@ -314,20 +315,38 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	img[1] = obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
 	
 	getDerivedFromLeft(root);
+	derivedFromLeft = cleanDerived(derivedFromLeft);
 	$("#derived-from-left").val(derivedFromLeft);
 	derivedFromLeft = "";
 	
 	return img;
 }
 
+function cleanDerived(derivedStr) {
+	derivedStr = derivedStr.replace(/<((\w|-|_)+)>/g, "$1")/*.replace(/->   ->/g, "->")*/;
+	return derivedStr;
+}
+
 function getDerivedFromLeft(root) {
-	if (root.parent == null) {
+	root.derived = true;
+	
+	if (!root.parent) {
 		derivedFromLeft += root.value;
 	}
 	
 	if (root.has_children) {
 		var child;
-		derivedFromLeft += " -> ";
+		var nextChild;
+		
+		if (root.value) {
+			var notDerivedStrAux = "";
+			var lastDerivedStr = derivedFromLeft.substr(0, derivedFromLeft.lastIndexOf("->"));
+			var notDerivedStr = lastDerivedStr.substr(lastDerivedStr.indexOf(root.value) + root.value.length);
+			derivedFromLeft += notDerivedStr;
+			derivedFromLeft += " -> ";
+			var notPreDerivedStr = lastDerivedStr.substr(lastDerivedStr.indexOf(0, root.value));
+			derivedFromLeft += notPreDerivedStr;
+		}
 		for (var i = 0; i < root.children.length; i++) {
 			child = root.children[i];
 			derivedFromLeft += child.value + " ";
@@ -337,7 +356,9 @@ function getDerivedFromLeft(root) {
 		for (var i = 0; i < root.children.length; i++) {
 			recursiveChild = root.children[i];
 			if (recursiveChild.has_children) {
-				getDerivedFromLeft(recursiveChild);
+				getDerivedFromLeft(recursiveChild);				
+			} else {
+				recursiveChild.derived = true;
 			}
 		}
 	}	
@@ -446,7 +467,7 @@ function parse(str) {
 	if (str[0] != "[") { // Text node
 		// Get any movement information.
 		// Make sure to collapse any spaces around <X> to one space, even if there is no space.	
-		str = str.replace(/\s*<(\w+)>\s*/, 
+		str = str.replace(/\s*<((\w|-|_)+)>\s*/, 
 			function(match, tail) {
 				n.tail = tail;
 				return " ";
@@ -465,7 +486,7 @@ function parse(str) {
 			n.starred = true;
 			return "";
 		});
-	n.value = n.value.replace(/_(\w+)$/,
+	n.value = n.value.replace(/_((\w|-|_)+)$/,
 		function(match, label) {
 			n.label = label;
 			if (n.label.search(/^\d+$/) != -1)
