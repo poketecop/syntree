@@ -118,11 +118,7 @@ Node.prototype.assign_location = function(x, y, font_size, term_lines) {
 		var left_start = x - (this.step)*((this.children.length-1)/2);
 		for (var i = 0; i < this.children.length; i++) {
 			if (this.children[i]) {
-				if (this.value) {
-					this.children[i].assign_location(left_start + i*(this.step), y + vert_space, font_size, term_lines);
-				} else {
-					this.children[i].assign_location(left_start + i*(this.step), y, font_size, term_lines);
-				}
+				this.children[i].assign_location(left_start + i*(this.step), y + vert_space, font_size, term_lines);
 			}
 		}
 	} else {
@@ -132,27 +128,20 @@ Node.prototype.assign_location = function(x, y, font_size, term_lines) {
 }
 
 Node.prototype.draw = function(ctx, font_size, term_font, nonterm_font, color, term_lines) {
-	if (this.value) {
-		ctx.font = term_font;
+	ctx.font = term_font;
+	if (this.has_children)
+		ctx.font = nonterm_font;
+		
+	ctx.fillStyle = "black";
+	if (color) {
+		ctx.fillStyle = "green";
 		if (this.has_children)
-			ctx.font = nonterm_font;
-			
-		ctx.fillStyle = "black";
-		if (color) {
-			ctx.fillStyle = "green";
-			if (this.has_children)
-				ctx.fillStyle = "blue";
-		}
-	
-	
-		ctx.fillText(this.value, this.x, this.y);
+			ctx.fillStyle = "blue";
 	}
 	
-	for (var child = this.first; child != null; child = child.next) {
+	ctx.fillText(this.value, this.x, this.y);
+	for (var child = this.first; child != null; child = child.next)
 		child.draw(ctx, font_size, term_font, nonterm_font, color, term_lines);
-	}
-	
-	if (!this.value) return;
 	
 	if (!this.parent) return;
 	
@@ -332,7 +321,7 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 }
 
 function getDerivedFromLeft(root) {
-	if (!root.parent) {
+	if (root.parent == null) {
 		derivedFromLeft += root.value;
 	}
 	
