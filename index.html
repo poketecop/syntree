@@ -1,10 +1,25 @@
+<!DOCTYPE html>
 <html>
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<meta name="description" content="An app for producing linguistics syntax trees from labelled bracket notation." />
 	<link rel="canonical" href="http://mshang.ca/syntree" />
+	<style type="text/css">
+	body { font-size: small !important; font-family: sans-serif; margin: 20px; background-color: #ffffff}
+	#accordion { margin: 0px auto; width: 500px; text-align: center; }
+	table { margin: 0px auto; }
+	//.ui-widget { font-size:small !important; }
+	td {font-size:small !important;}
+	textarea {resize: vertical; width: 100%}
+	a.example { text-decoration: none; color: #4183C4!important; }
+	.help {text-align: left;}
+	#image-goes-here { text-align: center; }
+	img { border: 1px solid #bbbbbb; }
+	.nobr { white-space: nowrap; }
+	</style>
+	<link type="text/css" href="css/cupertino/jquery-ui-1.8.18.custom.css" rel="stylesheet" />	
 	<title>Syntax Tree Generator</title>
-
+	
 	<script type="text/javascript">
 	var _gaq = _gaq || [];
 	_gaq.push(['_setAccount', 'UA-25344866-1']);
@@ -16,8 +31,6 @@
 	})();
 	</script>
 </head>
-
-
 <body>
 	<a href="https://github.com/mshang/syntree"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
 	<div id="accordion">
@@ -88,21 +101,7 @@
 	<div id="image-goes-here2"></div>
 
 
-<style type="text/css">
-body { font-size: small !important; font-family: sans-serif; margin: 20px; background-color: #ffffff}
-#accordion { margin: 0px auto; width: 500px; text-align: center; }
-table { margin: 0px auto; }
-//.ui-widget { font-size:small !important; }
-td {font-size:small !important;}
-textarea {resize: vertical; width: 100%}
-a.example { text-decoration: none; color: #4183C4!important; }
-.help {text-align: left;}
-#image-goes-here { text-align: center; }
-img { border: 1px solid #bbbbbb; }
-.nobr { white-space: nowrap; }
-</style>
 
-<link type="text/css" href="css/cupertino/jquery-ui-1.8.18.custom.css" rel="stylesheet" />	
 <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.18.custom.min.js"></script>
 <script type="text/javascript" src="js/base64.js"></script>
@@ -141,7 +140,7 @@ try {
 	nonterm_font = nonterm_font + $('input:radio[name=font-style]:checked').val();
 	
 	// Get the string.
-	var str = document.getElementById("i").value;
+	var str = $("#i").val();
 	
 	/*$("#image-goes-here").text(str + ", " + font_size + ", " + 
 		term_font + ", " + nonterm_font + ", " + vert_space + ", " + hor_space);*/
@@ -161,7 +160,7 @@ try {
 			$("#image-goes-here").text("Browser not supported.");
 	}
 } // try-catch
-return false;
+return true;
 } // handler()
 
 $(function() {
@@ -187,7 +186,8 @@ $(function() {
 // 	$("#i").keypress(function() {handler(); return true;});
 // 	$("#i").keyup(function() {handler(); return true;});
 // 	$("#i").keydown(function() {handler(); return true;});
- 	$("#i").change(function() {handler(); return true;});
+//  $("#i").change(function() {handler(); return true;});
+	$("#i").on("input", function() {handler(); return true;});
 	$(".redraw").change(function() {return handler()});
 	$("#make-link").click(function() {
 		var loc = window.location.href;

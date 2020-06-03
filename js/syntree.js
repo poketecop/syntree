@@ -302,6 +302,7 @@ MovementLine.prototype.draw = function(ctx) {
 }
 
 function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {	
+	console.log("go");
 	// Clean up the string
 	str = str.replace(/^\s+/, "");
 	var open = 0;
@@ -317,6 +318,7 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 		str = str + "]";
 		open--;
 	}
+	$("#i").val(str);
 	
 	var root = parse(str);
 	var simplifiedRoot = simplifyRoot(root);
