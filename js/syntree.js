@@ -301,8 +301,8 @@ MovementLine.prototype.draw = function(ctx) {
 	ctx.fill();
 }
 
-function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {	
-	var derivedFromLeft = "";
+var derivedFromLeft = "";
+function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {
 	str = cleanString(str);
 	
 	var root = parse(str);
@@ -313,7 +313,34 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	img[0] = obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
 	img[1] = obtainCanvasImage(simplifiedRoot, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
 	
+	getDerivedFromLeft(root);
+	$("#derived-from-left").val(derivedFromLeft);
+	derivedFromLeft = "";
+	
 	return img;
+}
+
+function getDerivedFromLeft(root) {
+	if (root.parent == null) {
+		derivedFromLeft += root.value;
+	}
+	
+	if (root.has_children) {
+		var child;
+		derivedFromLeft += " -> ";
+		for (var i = 0; i < root.children.length; i++) {
+			child = root.children[i];
+			derivedFromLeft += child.value + " ";
+		}
+		
+		var recursiveChild;
+		for (var i = 0; i < root.children.length; i++) {
+			recursiveChild = root.children[i];
+			if (recursiveChild.has_children) {
+				getDerivedFromLeft(recursiveChild);
+			}
+		}
+	}	
 }
 
 function cleanString(str) {
