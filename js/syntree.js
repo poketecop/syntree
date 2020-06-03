@@ -309,6 +309,12 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	var root = parse(str);
 	var simplifiedRoot = simplifyRoot(root);
 	
+	root.set_siblings(null);
+	removeEmptyNodes(root);
+	root.set_siblings(null);
+	
+	simplifiedRoot.set_siblings(null);
+	
 	// Swap out the image
 	var img = [];
 	img[0] = obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines);
@@ -320,6 +326,20 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	derivedFromLeft = "";
 	
 	return img;
+}
+
+function removeEmptyNodes(root) {
+	if (!root.value && root.parent) {
+		root.parent.children = root.children;
+		
+		for (var i = 0; i < root.parent.children.length; i++) {
+			removeEmptyNodes(root.parent.children[i]);
+		}
+	} else {
+		for (var i = 0; i < root.children.length; i++) {
+			removeEmptyNodes(root.children[i]);
+		}
+	}
 }
 
 function cleanDerived(derivedStr) {
@@ -338,30 +358,49 @@ function getDerivedFromLeft(root) {
 		var child;
 		var nextChild;
 		
-		if (root.value) {
-			var notDerivedStrAux = "";
-			var lastDerivedStr = derivedFromLeft.substr(0, derivedFromLeft.lastIndexOf("->"));
-			var notDerivedStr = lastDerivedStr.substr(lastDerivedStr.indexOf(root.value) + root.value.length);
-			derivedFromLeft += notDerivedStr;
-			derivedFromLeft += " -> ";
-			var notPreDerivedStr = lastDerivedStr.substr(lastDerivedStr.indexOf(0, root.value));
-			derivedFromLeft += notPreDerivedStr;
-		}
+		derivedFromLeft += " -> ";
+		
 		for (var i = 0; i < root.children.length; i++) {
 			child = root.children[i];
 			derivedFromLeft += child.value + " ";
 		}
 		
+		var notDerivedEndStr = getNotDerivedEndStr(root);
 		var recursiveChild;
 		for (var i = 0; i < root.children.length; i++) {
 			recursiveChild = root.children[i];
 			if (recursiveChild.has_children) {
+				derivedFromLeft += notDerivedEndStr;
 				getDerivedFromLeft(recursiveChild);				
 			} else {
 				recursiveChild.derived = true;
 			}
 		}
+		
+		derivedFromLeft += notDerivedEndStr;
 	}	
+}
+
+function getNotDerivedEndStr(root, notDerivedEndStr) {
+	if (!notDerivedEndStr) {
+		notDerivedEndStr = "";
+	}
+	
+	var rootNext = root.next;
+	var rootParent = root;
+	
+	while (!rootNext && rootParent.parent) {
+		rootParent = rootParent.parent;
+		rootNext = rootParent.next;
+	}
+	
+	if (rootNext) {
+		notDerivedEndStr += rootNext.value + " ";
+		
+		notDerivedEndStr = getNotDerivedEndStr(rootNext, notDerivedEndStr);
+	}
+	
+	return notDerivedEndStr;
 }
 
 function cleanString(str) {
@@ -389,7 +428,6 @@ function cleanString(str) {
 }
 
 function obtainCanvasImage(root, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {
-	root.set_siblings(null);
 	root.check_triangle();
 	
 	var canvas;
