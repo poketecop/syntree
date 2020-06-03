@@ -14,7 +14,7 @@ function Node() {
 	this.tail = null; // Tail of movement.
 	this.max_y = null; // Distance of the descendent of this node that is farthest from root.
 	this.children = new Array();
-	this.has_children;
+	this.has_children = false;
 	this.first = null;
 	this.last = null;
 	this.parent = null;
@@ -26,6 +26,7 @@ function Node() {
 	this.tail_chain = null;
 	this.starred = null;
 	this.derived = false;
+	this.derivedStr = "";
 }
 
 Node.prototype.set_siblings = function(parent) {
@@ -54,6 +55,21 @@ Node.prototype.set_siblings = function(parent) {
 			this.children[i].previous = this.children[i-1];
 		}
 	}
+}
+
+Node.prototype.reset_siblings = function() {
+	for (var i = 0; i < this.children.length; i++) {
+		if (this.children[i]) {
+			this.children[i].reset_siblings(this);
+		}
+	}
+	
+	this.has_children = false;
+	this.parent = null;
+	this.first = null;
+	this.last = null;
+	this.next = null;
+	this.previous = null;
 }
 
 Node.prototype.check_triangle = function() {
@@ -311,6 +327,7 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	
 	root.set_siblings(null);
 	removeEmptyNodes(root);
+	root.reset_siblings();
 	root.set_siblings(null);
 	
 	simplifiedRoot.set_siblings(null);
@@ -348,7 +365,7 @@ function cleanDerived(derivedStr) {
 }
 
 function getDerivedFromLeft(root) {
-	root.derived = true;
+	
 	
 	if (!root.parent) {
 		derivedFromLeft += root.value;
@@ -360,25 +377,32 @@ function getDerivedFromLeft(root) {
 		
 		derivedFromLeft += " -> ";
 		
+		var notDerivedBeginStr = getNotDerivedBeginStr(root);
+		derivedFromLeft += notDerivedBeginStr;
+		
+		var derivedStr = "";
 		for (var i = 0; i < root.children.length; i++) {
 			child = root.children[i];
-			derivedFromLeft += child.value + " ";
+			derivedStr += child.value + " ";
 		}
+		derivedFromLeft += derivedStr;
 		
 		var notDerivedEndStr = getNotDerivedEndStr(root);
+		derivedFromLeft += notDerivedEndStr;
+		
 		var recursiveChild;
 		for (var i = 0; i < root.children.length; i++) {
 			recursiveChild = root.children[i];
 			if (recursiveChild.has_children) {
-				derivedFromLeft += notDerivedEndStr;
-				getDerivedFromLeft(recursiveChild);				
-			} else {
-				recursiveChild.derived = true;
+				derivedStr = getDerivedFromLeft(recursiveChild);				
 			}
 		}
 		
-		derivedFromLeft += notDerivedEndStr;
-	}	
+		root.derived = true;
+		root.derivedStr = derivedStr;
+		
+		return derivedStr;
+	}
 }
 
 function getNotDerivedEndStr(root, notDerivedEndStr) {
@@ -401,6 +425,33 @@ function getNotDerivedEndStr(root, notDerivedEndStr) {
 	}
 	
 	return notDerivedEndStr;
+}
+
+
+function getNotDerivedBeginStr(root, notDerivedBeginStr) {
+	if (!notDerivedBeginStr) {
+		notDerivedBeginStr = "";
+	}
+	
+	var rootPrevious = root.previous;
+	var rootParent = root;
+	
+	while (!rootPrevious && rootParent.parent) {
+		rootParent = rootParent.parent;
+		rootPrevious = rootParent.previous;
+	}
+	
+	if (rootPrevious) {
+		if (rootPrevious.derived) {
+			notDerivedBeginStr = rootPrevious.derivedStr + " " + notDerivedBeginStr;
+		} else {
+			notDerivedBeginStr = rootPrevious.value + " " + notDerivedBeginStr;
+		}
+		
+		notDerivedBeginStr = getNotDerivedBeginStr(rootPrevious, notDerivedBeginStr);
+	}
+	
+	return notDerivedBeginStr;
 }
 
 function cleanString(str) {
