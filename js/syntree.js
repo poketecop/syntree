@@ -379,7 +379,7 @@ function removeEmptyNodes(root) {
 }
 
 function cleanDerived(derivedStr) {
-	derivedStr = derivedStr.replace(/<((\w|-|_)+)>/g, "$1")/*.replace(/->   ->/g, "->")*/;
+	derivedStr = derivedStr.replace(/<((\w|-|_)+)>/g, "$1").replace(/ +/g, " ");
 	return derivedStr;
 }
 
@@ -402,7 +402,7 @@ function getDerivedFromLeft(root) {
 		var derivedStr = "";
 		for (var i = 0; i < root.children.length; i++) {
 			child = root.children[i];
-			derivedStr += child.value + " ";
+			derivedFromLeft += child.value + " ";
 		}
 		derivedFromLeft += derivedStr;
 		
@@ -410,10 +410,14 @@ function getDerivedFromLeft(root) {
 		derivedFromLeft += notDerivedEndStr;
 		
 		var recursiveChild;
+		var derivedStr = "";
 		for (var i = 0; i < root.children.length; i++) {
 			recursiveChild = root.children[i];
 			if (recursiveChild.has_children) {
-				derivedStr = getDerivedFromLeft(recursiveChild);				
+				getDerivedFromLeft(recursiveChild);
+				derivedStr += recursiveChild.derivedStr + " "; 
+			} else {
+				derivedStr += recursiveChild.value + " ";
 			}
 		}
 		
@@ -440,21 +444,23 @@ function getDerivedFromRight(root) {
 		var notDerivedBeginStr = getNotDerivedBeginStr(root);
 		derivedFromRight += notDerivedBeginStr;
 		
-		var derivedStr = "";
 		for (var i = 0; i < root.children.length; i++) {
 			child = root.children[i];
-			derivedStr += child.value + " ";
+			derivedFromRight += child.value + " ";
 		}
-		derivedFromRight += derivedStr;
 		
 		var notDerivedEndStr = getNotDerivedEndStr(root);
 		derivedFromRight += notDerivedEndStr;
 		
 		var recursiveChild;
+		var derivedStr = "";
 		for (var i = root.children.length - 1; i >= 0 ; i--) {
 			recursiveChild = root.children[i];
 			if (recursiveChild.has_children) {
-				derivedStr = getDerivedFromRight(recursiveChild);				
+				getDerivedFromRight(recursiveChild);		
+				derivedStr = recursiveChild.derivedStr + " " + derivedStr;
+			} else {
+				derivedStr = recursiveChild.value + " " + derivedStr;
 			}
 		}
 		
