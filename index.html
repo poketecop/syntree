@@ -168,6 +168,7 @@ try {
 return true;
 } // handler()
 
+var lastKey = "";
 $(function() {
 	// UI
 	$("#make-link, #color-check, #term-lines").button();
@@ -188,10 +189,10 @@ $(function() {
 	handler();
 	
 	// Events
-// 	$("#i").keypress(function() {handler(); return true;});
-// 	$("#i").keyup(function() {handler(); return true;});
-// 	$("#i").keydown(function() {handler(); return true;});
-//  $("#i").change(function() {handler(); return true;});
+	
+	$("#i").keydown(function(){
+	  lastKey = event.key;
+	});
 	$("#i").on("input", function() {handler(); return true;});
 	$(".redraw").change(function() {return handler()});
 	$("#make-link").click(function() {

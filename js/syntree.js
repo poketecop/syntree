@@ -542,7 +542,12 @@ function cleanString(str) {
 		str = str + "]";
 		open--;
 	}
-	$("#i").val(str);
+	
+	if (lastKey != "Backspace") {
+		var cursorPosition = document.getElementById("i").selectionStart;
+		document.getElementById("i").value = str;
+		document.getElementById("i").setSelectionRange(cursorPosition, cursorPosition);
+	}
 	
 	return str;
 }
