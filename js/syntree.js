@@ -365,15 +365,26 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 }
 
 function removeEmptyNodes(root) {
-	if (!root.value && root.parent) {
-		root.parent.children = root.children;
-		
-		for (var i = 0; i < root.parent.children.length; i++) {
-			removeEmptyNodes(root.parent.children[i]);
-		}
-	} else {
-		for (var i = 0; i < root.children.length; i++) {
-			removeEmptyNodes(root.children[i]);
+	removeEmptyConsecutiveNodes(root);
+	
+	for (var i = 0; i < root.children.length; i++) {
+		removeEmptyNodes(root.children[i]);
+	}
+}
+
+function removeEmptyConsecutiveNodes(root) {
+	for (var i = 0; i < root.children.length; i++) {
+		if (!root.children[i].value) {
+			var auxChildren = [];
+			if (i > 0) {
+				auxChildren = root.children.slice(0, i);
+			}
+			removeEmptyConsecutiveNodes(root.children[i]);
+			auxChildren = auxChildren.concat(root.children[i].children);
+			if (i + 1 < root.children.length) {
+				auxChildren = auxChildren.concat(root.children.slice(i + 1, root.children.length));
+			}
+			root.children = auxChildren;
 		}
 	}
 }
@@ -524,7 +535,19 @@ function getNotDerivedBeginStr(root, notDerivedBeginStr) {
 }
 
 function cleanString(str) {
-	// Clean up the string
+	
+	if (event && event.type == "input") {
+		if (lastKey != "Backspace") {
+			var cursorPosition = document.getElementById("i").selectionStart;
+			if (str[cursorPosition - 1] == "[")	{
+				str = insert(str, "]", cursorPosition);
+				
+				document.getElementById("i").value = str;
+				document.getElementById("i").setSelectionRange(cursorPosition, cursorPosition);
+			}
+		}
+	}
+	
 	str = str.replace(/^\s+/, "");
 	var open = 0;
 	for (var i = 0; i < str.length; i++) {
@@ -543,11 +566,6 @@ function cleanString(str) {
 		open--;
 	}
 	
-	if (lastKey != "Backspace") {
-		var cursorPosition = document.getElementById("i").selectionStart;
-		document.getElementById("i").value = str;
-		document.getElementById("i").setSelectionRange(cursorPosition, cursorPosition);
-	}
 	
 	return str;
 }
@@ -708,4 +726,14 @@ function simplifyRoot(root) {
 	}
 	
 	return simplifiedRoot;
+}
+
+function insert(main_string, ins_string, pos) {
+	   if(typeof(pos) == "undefined") {
+	    pos = 0;
+	  }
+	   if(typeof(ins_string) == "undefined") {
+	    ins_string = '';
+	  }
+	   return main_string.slice(0, pos) + ins_string + main_string.slice(pos);
 }

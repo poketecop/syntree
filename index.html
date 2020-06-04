@@ -191,7 +191,8 @@ $(function() {
 	// Events
 	
 	$("#i").keydown(function(){
-	  lastKey = event.key;
+	  lastKey = event.code;
+	  return true;
 	});
 	$("#i").on("input", function() {handler(); return true;});
 	$(".redraw").change(function() {return handler()});
