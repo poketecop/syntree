@@ -85,7 +85,7 @@ Node.prototype.reset_derived = function() {
 
 Node.prototype.check_triangle = function() {
 	this.draw_triangle = 0;
-	if ((!this.has_children) && (this.parent.starred))
+	if ((!this.has_children) && (this.parent && this.parent.starred))
 		this.draw_triangle = 1;
 
 	for (var child = this.first; child != null; child = child.next)
@@ -429,7 +429,6 @@ function getDerivedFromLeft(root) {
 }
 
 function getDerivedFromRight(root) {
-	
 	
 	if (!root.parent) {
 		derivedFromRight += root.value;
