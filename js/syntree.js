@@ -72,6 +72,17 @@ Node.prototype.reset_siblings = function() {
 	this.previous = null;
 }
 
+Node.prototype.reset_derived = function() {
+	for (var i = 0; i < this.children.length; i++) {
+		if (this.children[i]) {
+			this.children[i].reset_derived(this);
+		}
+	}
+	
+	this.derived = false;
+	this.derivedStr = "";
+}
+
 Node.prototype.check_triangle = function() {
 	this.draw_triangle = 0;
 	if ((!this.has_children) && (this.parent.starred))
@@ -319,6 +330,7 @@ MovementLine.prototype.draw = function(ctx) {
 }
 
 var derivedFromLeft = "";
+var derivedFromRight = "";
 function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, color, term_lines) {
 	str = cleanString(str);
 	
@@ -341,6 +353,13 @@ function go(str, font_size, term_font, nonterm_font, vert_space, hor_space, colo
 	derivedFromLeft = cleanDerived(derivedFromLeft);
 	$("#derived-from-left").val(derivedFromLeft);
 	derivedFromLeft = "";
+	root.reset_derived();
+	
+	getDerivedFromRight(root);
+	derivedFromRight = cleanDerived(derivedFromRight);
+	$("#derived-from-right").val(derivedFromRight);
+	derivedFromRight = "";
+	root.reset_derived();
 	
 	return img;
 }
@@ -405,6 +424,47 @@ function getDerivedFromLeft(root) {
 	}
 }
 
+function getDerivedFromRight(root) {
+	
+	
+	if (!root.parent) {
+		derivedFromRight += root.value;
+	}
+	
+	if (root.has_children) {
+		var child;
+		var nextChild;
+		
+		derivedFromRight += " -> ";
+		
+		var notDerivedBeginStr = getNotDerivedBeginStr(root);
+		derivedFromRight += notDerivedBeginStr;
+		
+		var derivedStr = "";
+		for (var i = 0; i < root.children.length; i++) {
+			child = root.children[i];
+			derivedStr += child.value + " ";
+		}
+		derivedFromRight += derivedStr;
+		
+		var notDerivedEndStr = getNotDerivedEndStr(root);
+		derivedFromRight += notDerivedEndStr;
+		
+		var recursiveChild;
+		for (var i = root.children.length - 1; i >= 0 ; i--) {
+			recursiveChild = root.children[i];
+			if (recursiveChild.has_children) {
+				derivedStr = getDerivedFromRight(recursiveChild);				
+			}
+		}
+		
+		root.derived = true;
+		root.derivedStr = derivedStr;
+		
+		return derivedStr;
+	}
+}
+
 function getNotDerivedEndStr(root, notDerivedEndStr) {
 	if (!notDerivedEndStr) {
 		notDerivedEndStr = "";
@@ -419,7 +479,11 @@ function getNotDerivedEndStr(root, notDerivedEndStr) {
 	}
 	
 	if (rootNext) {
-		notDerivedEndStr += rootNext.value + " ";
+		if (rootNext.derived) {
+			notDerivedEndStr += rootNext.derivedStr + " ";
+		} else {
+			notDerivedEndStr += rootNext.value + " ";
+		}
 		
 		notDerivedEndStr = getNotDerivedEndStr(rootNext, notDerivedEndStr);
 	}
